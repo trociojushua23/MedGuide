@@ -1,27 +1,41 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  Pressable, 
+  StyleSheet, 
+  ScrollView, 
+  KeyboardAvoidingView, 
+  Platform 
+} from "react-native";
+
+// 👉 Function to check symptoms
+function getSymptomAdvice(symptom) {
+  if (!symptom.trim()) {
+    return "⚠️ Please enter your symptoms to get advice.";
+  }
+
+  const s = symptom.toLowerCase();
+
+  if (s.includes("fever")) {
+    return "🤒 You may have an infection. Stay hydrated and consider seeing a doctor if it persists.";
+  } else if (s.includes("headache")) {
+    return "💆 Headaches can be caused by stress or dehydration. Rest, drink water, and monitor.";
+  } else if (s.includes("cough")) {
+    return "😷 Persistent cough may indicate flu or respiratory issues. Monitor your temperature.";
+  } else {
+    return "ℹ️ Symptom not recognized. Please consult a healthcare provider for accurate advice.";
+  }
+}
 
 export default function SymptomChecker() {
   const [symptom, setSymptom] = useState("");
   const [result, setResult] = useState("");
 
   const handleCheck = () => {
-    if (!symptom.trim()) {
-      setResult("⚠️ Please enter your symptoms to get advice.");
-      return;
-    }
-
-    const s = symptom.toLowerCase();
-
-    if (s.includes("fever")) {
-      setResult("🤒 You may have an infection. Stay hydrated and consider seeing a doctor if it persists.");
-    } else if (s.includes("headache")) {
-      setResult("💆 Headaches can be caused by stress or dehydration. Rest, drink water, and monitor.");
-    } else if (s.includes("cough")) {
-      setResult("😷 Persistent cough may indicate flu or respiratory issues. Monitor your temperature.");
-    } else {
-      setResult("ℹ️ Symptom not recognized. Please consult a healthcare provider for accurate advice.");
-    }
+    const advice = getSymptomAdvice(symptom);
+    setResult(advice);
   };
 
   return (
@@ -36,7 +50,7 @@ export default function SymptomChecker() {
         </Text>
 
         <TextInput
-          placeholder="e.g., fever, headache, cough"
+          placeholder=""
           value={symptom}
           onChangeText={setSymptom}
           style={styles.input}

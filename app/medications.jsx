@@ -1,181 +1,151 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Platform, Alert } from "react-native";
-import * as Notifications from "expo-notifications";
-import * as Device from "expo-device";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  ScrollView,
+  Alert,
+} from "react-native";
 
-// Configure notification handling
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+export default function Medications() {
+  const [time, setTime] = useState("");
+  const [medications, setMedications] = useState([]);
+  const [editingIndex, setEditingIndex] = useState(null);
 
-export default function MedicineReminder() {
-  const [medicine, setMedicine] = useState("");
-  const [dosage, setDosage] = useState("");
-  const [time, setTime] = useState(""); // Format: "HH:MM" (24h)
-  const [reminders, setReminders] = useState([]);
-
-  useEffect(() => {
-    // Request permission for notifications
-    const requestPermission = async () => {
-      if (Device.isDevice) {
-        const { status } = await Notifications.requestPermissionsAsync();
-        if (status !== "granted") {
-          Alert.alert("Permission required", "Enable notifications in settings.");
-        }
-      }
-    };
-    requestPermission();
-  }, []);
-
-  const scheduleReminder = async () => {
-    if (!medicine.trim() || !dosage.trim() || !time.trim()) {
-      Alert.alert("⚠️ Missing Info", "Please fill out all fields.");
+  // Add or update medication time
+  const handleSave = () => {
+    if (!time.trim()) {
+      Alert.alert("⚠️ Input Required", "Please enter a time (e.g. 08:00 AM).");
       return;
     }
 
-    try {
-      const [hour, minute] = time.split(":").map(Number);
-
-      const trigger = new Date();
-      trigger.setHours(hour);
-      trigger.setMinutes(minute);
-      trigger.setSeconds(0);
-
-      // If time already passed today, schedule for tomorrow
-      if (trigger < new Date()) {
-        trigger.setDate(trigger.getDate() + 1);
-      }
-
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "💊 Medicine Reminder",
-          body: `Time to take ${dosage} of ${medicine}`,
-        },
-        trigger,
-      });
-
-      const newReminder = { medicine, dosage, time };
-      setReminders([...reminders, newReminder]);
-      setMedicine("");
-      setDosage("");
-      setTime("");
-
-      Alert.alert("✅ Reminder Set", `Reminder for ${medicine} at ${time}`);
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Could not schedule reminder.");
+    if (editingIndex !== null) {
+      // Update
+      const updated = [...medications];
+      updated[editingIndex] = time;
+      setMedications(updated);
+      setEditingIndex(null);
+      Alert.alert("✅ Updated", "Medication time updated successfully.");
+    } else {
+      // Add
+      setMedications([...medications, time]);
+      Alert.alert("✅ Added", "Medication time added successfully.");
     }
+
+    setTime("");
+  };
+
+  // Edit existing time
+  const handleEdit = (index) => {
+    setTime(medications[index]);
+    setEditingIndex(index);
+  };
+
+  // Delete time
+  const handleDelete = (index) => {
+    const updated = medications.filter((_, i) => i !== index);
+    setMedications(updated);
+    Alert.alert("🗑️ Deleted", "Medication time removed.");
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>💊 Medicine Reminder</Text>
-      <Text style={styles.subtitle}>
-        Set reminders for your medications with dosage and time.
-      </Text>
+      <Text style={styles.header}>💊 Medication Reminder</Text>
 
       <TextInput
-        placeholder="Medicine name (e.g., Paracetamol)"
-        value={medicine}
-        onChangeText={setMedicine}
         style={styles.input}
-      />
-
-      <TextInput
-        placeholder="Dosage (e.g., 500mg)"
-        value={dosage}
-        onChangeText={setDosage}
-        style={styles.input}
-      />
-
-      <TextInput
-        placeholder="Time (HH:MM, 24-hour)"
+        placeholder="Enter time (e.g. 08:00 AM)"
         value={time}
         onChangeText={setTime}
-        style={styles.input}
       />
 
-      <Pressable style={styles.button} onPress={scheduleReminder}>
-        <Text style={styles.buttonText}>Set Reminder</Text>
+      <Pressable style={styles.button} onPress={handleSave}>
+        <Text style={styles.buttonText}>
+          {editingIndex !== null ? "Update Time" : "Add Time"}
+        </Text>
       </Pressable>
 
-      {reminders.length > 0 && (
-        <View style={styles.reminderList}>
-          <Text style={styles.reminderTitle}>📋 Your Reminders:</Text>
-          {reminders.map((r, idx) => (
-            <Text key={idx} style={styles.reminderItem}>
-              • {r.time} – {r.medicine} ({r.dosage})
-            </Text>
-          ))}
-        </View>
-      )}
+      <View style={styles.listContainer}>
+        {medications.map((med, index) => (
+          <View key={index} style={styles.listItem}>
+            <Text style={styles.listText}>{med}</Text>
+            <View style={styles.actions}>
+              <Pressable
+                style={[styles.smallButton, { backgroundColor: "#4CAF50" }]}
+                onPress={() => handleEdit(index)}
+              >
+                <Text style={styles.smallText}>Edit</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.smallButton, { backgroundColor: "#F44336" }]}
+                onPress={() => handleDelete(index)}
+              >
+                <Text style={styles.smallText}>Delete</Text>
+              </Pressable>
+            </View>
+          </View>
+        ))}
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
     padding: 20,
-    backgroundColor: "#f0f8ff",
   },
-  title: {
-    fontSize: 28,
+  header: {
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#2d6a4f",
-    marginBottom: 10,
+    marginBottom: 20,
     textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#555",
-    textAlign: "center",
-    marginBottom: 30,
-    paddingHorizontal: 20,
   },
   input: {
-    width: "90%",
-    padding: 14,
     borderWidth: 1,
-    borderColor: "#1d9bf0",
-    borderRadius: 10,
-    marginBottom: 15,
-    backgroundColor: "white",
-    fontSize: 16,
+    borderColor: "#ccc",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   button: {
-    width: "90%",
-    backgroundColor: "#1d9bf0",
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: "#2196F3",
+    padding: 14,
+    borderRadius: 8,
     alignItems: "center",
     marginBottom: 20,
   },
   buttonText: {
-    color: "white",
+    color: "#fff",
     fontWeight: "bold",
-    fontSize: 18,
   },
-  reminderList: {
-    width: "90%",
-    marginTop: 20,
-    backgroundColor: "#e6f7ff",
-    padding: 15,
-    borderRadius: 10,
+  listContainer: {
+    marginTop: 10,
   },
-  reminderTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
+  listItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 12,
+    backgroundColor: "#f9f9f9",
+    marginBottom: 8,
+    borderRadius: 8,
+    alignItems: "center",
   },
-  reminderItem: {
+  listText: {
     fontSize: 16,
-    marginBottom: 5,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  smallButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+  smallText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });

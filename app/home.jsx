@@ -19,8 +19,6 @@ const Home = () => {
         <NavCard href="/medications" label="Medicine Reminder" icon="💊" />
         <NavCard href="/hospitals" label="Nearby Hospitals" icon="🏥" />
         <NavCard href="/pharmacies" label="Pharmacies Locator" icon="🧾" />
-        <NavCard href="/first-aid" label="First Aid Guide" icon="🚑" />
-        <NavCard href="/health-tips" label="Health Tips" icon="📘" />
       </ScrollView>
     </View>
   )
