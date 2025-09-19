@@ -1,79 +1,99 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+// File: app/index.jsx
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+} from "react-native";
 import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 
-
-const Index = () => {
+export default function LandingPage() {
   const router = useRouter();
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* App Header */}
-      <Text style={styles.title}>💊 MedGuide</Text>
-      <Text style={styles.subtitle}>
-        Your health, simplified. Stay on track with your med and well-being 🌿
-      </Text>
+    <LinearGradient
+      colors={["#e6e9ff", "#f9faff", "#fff"]}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.inner}>
+          {/* App Name */}
+          <Text style={styles.title}>🏥 MedGuide</Text>
+          <Text style={styles.subtitle}>
+            Caring for your health, anytime 💊
+          </Text>
 
-      {/* Buttons */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => router.push("/signup")}
-      >
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </TouchableOpacity>
+          {/* Auth Buttons */}
+          <View style={styles.authButtonsContainer}>
+            <TouchableOpacity
+              style={[styles.button, styles.signUpButton]}
+              onPress={() => router.push("/signup")}
+            >
+              <Text style={styles.buttonText}>Sign Up</Text>
+            </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[styles.button, styles.loginButton]}
-        onPress={() => router.push("/login")}
-      >
-        <Text style={styles.buttonText}>Log In</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+            <TouchableOpacity
+              style={[styles.button, styles.loginButton]}
+              onPress={() => router.push("/login")}
+            >
+              <Text style={styles.buttonText}>Log In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
-};
-
-export default Index;
+}
 
 const styles = StyleSheet.create({
-  container: {
+  container: { flex: 1 },
+  safe: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-    backgroundColor: "#f0f8ff", // light medical blue
+  },
+  inner: {
+    alignItems: "center",
+    paddingHorizontal: 30,
   },
   title: {
-    fontSize: 38,
+    fontSize: 34,
     fontWeight: "bold",
-    color: "#2d6a4f", // greenish tone for health
-    marginBottom: 10,
+    color: "#3b61ecff",
+    marginBottom: 12,
     textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: "#555",
+    color: "#444",
     textAlign: "center",
-    marginBottom: 50,
-    paddingHorizontal: 20,
+    marginBottom: 40,
   },
   button: {
-    backgroundColor: "#1d9bf0", // healthcare blue
     paddingVertical: 14,
-    paddingHorizontal: 60,
-    borderRadius: 14,
+    paddingHorizontal: 40,
+    borderRadius: 10,
+    marginVertical: 8,
     alignItems: "center",
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 5,
-  },
-  loginButton: {
-    backgroundColor: "#34c759", // apple health green
+    width: 220,
   },
   buttonText: {
     color: "white",
     fontWeight: "600",
     fontSize: 18,
+  },
+  authButtonsContainer: {
+    marginTop: 10,
+    width: "100%",
+    alignItems: "center",
+  },
+  signUpButton: {
+    backgroundColor: "#34c759", // green for sign up
+  },
+  loginButton: {
+    backgroundColor: "#3b61ecff", // purple for login
   },
 });

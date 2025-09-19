@@ -6,9 +6,11 @@ import {
   FlatList,
   ActivityIndicator,
   Pressable,
+  TouchableOpacity,
 } from "react-native";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
+import { Link } from "expo-router";
 
 const PharmaciesLocator = () => {
   const [location, setLocation] = useState(null);
@@ -22,7 +24,6 @@ const PharmaciesLocator = () => {
   const getLocationAndFetch = async () => {
     setLoading(true);
     try {
-      // Ask location permission
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         alert("Permission to access location was denied");
@@ -30,11 +31,9 @@ const PharmaciesLocator = () => {
         return;
       }
 
-      // Get current coordinates
       let loc = await Location.getCurrentPositionAsync({});
       setLocation(loc.coords);
 
-      // Fetch nearby pharmacies
       fetchPharmacies(loc.coords.latitude, loc.coords.longitude);
     } catch (error) {
       console.error(error);
@@ -67,6 +66,14 @@ const PharmaciesLocator = () => {
 
   return (
     <View style={styles.container}>
+      {/* 🔙 Back to Home Button */}
+      <Link href="/home" asChild>
+        <TouchableOpacity style={styles.backButton}>
+          <Ionicons name="arrow-back" size={22} color="#fff" />
+          <Text style={styles.backText}>Back to Home</Text>
+        </TouchableOpacity>
+      </Link>
+
       {/* Header */}
       <View style={styles.headerContainer}>
         <Ionicons name="medkit" size={26} color="#0ea5e9" />
@@ -109,6 +116,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f8fafc",
     padding: 20,
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#0ea5e9",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+    alignSelf: "flex-start",
+  },
+  backText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 6,
   },
   headerContainer: {
     flexDirection: "row",

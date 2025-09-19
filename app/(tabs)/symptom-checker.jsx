@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView, 
   Platform 
 } from "react-native";
+import { useRouter } from "expo-router";  // 👉 Import router
 
 // 👉 Function to check symptoms
 function getSymptomAdvice(symptom) {
@@ -30,6 +31,7 @@ function getSymptomAdvice(symptom) {
 }
 
 export default function SymptomChecker() {
+  const router = useRouter(); // 👉 initialize router
   const [symptom, setSymptom] = useState("");
   const [result, setResult] = useState("");
 
@@ -50,7 +52,7 @@ export default function SymptomChecker() {
         </Text>
 
         <TextInput
-          placeholder=""
+          placeholder="Type your symptom here..."
           value={symptom}
           onChangeText={setSymptom}
           style={styles.input}
@@ -65,6 +67,16 @@ export default function SymptomChecker() {
             <Text style={styles.resultText}>{result}</Text>
           </View>
         ) : null}
+
+        {/* 👉 Back to Home button */}
+        <Pressable 
+          style={[styles.button, { backgroundColor: "#2d6a4f", marginTop: 20 }]} 
+          // ⚡ Palihug i-adjust depende sa imo file name:
+          onPress={() => router.replace("home")}   // kung index.jsx imong home
+          // onPress={() => router.replace("/home")} // kung Home.jsx imong home
+        >
+          <Text style={styles.buttonText}>⬅️ Back to Home</Text>
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );

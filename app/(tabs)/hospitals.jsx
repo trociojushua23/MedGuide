@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import * as Location from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Link } from 'expo-router';
 
 const NearbyHospitals = () => {
   const [location, setLocation] = useState(null);
@@ -9,23 +10,22 @@ const NearbyHospitals = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      // Request location permission
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        alert('Permission to access location was denied');
-        setLoading(false);
-        return;
-      }
-
-      // Get user location
-      let loc = await Location.getCurrentPositionAsync({});
-      setLocation(loc.coords);
-
-      // Fetch hospitals nearby
-      fetchHospitals(loc.coords.latitude, loc.coords.longitude);
-    })();
+    getHospitals();
   }, []);
+
+  const getHospitals = async () => {
+    setLoading(true);
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permission to access location was denied');
+      setLoading(false);
+      return;
+    }
+
+    let loc = await Location.getCurrentPositionAsync({});
+    setLocation(loc.coords);
+    fetchHospitals(loc.coords.latitude, loc.coords.longitude);
+  };
 
   const fetchHospitals = async (lat, lon) => {
     try {
@@ -52,6 +52,19 @@ const NearbyHospitals = () => {
 
   return (
     <View style={styles.container}>
+      {/* 🔙 Back to Home Button */}
+      <Link href="/home" asChild>
+        <TouchableOpacity style={styles.backButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#fff" />
+          <Text style={styles.backText}>Back to Home</Text>
+        </TouchableOpacity>
+      </Link>
+
+      {/* 🔄 Restart Button */}
+      <TouchableOpacity style={styles.refreshButton} onPress={getHospitals}>
+        <MaterialIcons name="refresh" size={24} color="#0ea5e9" />
+      </TouchableOpacity>
+
       <Text style={styles.header}>🏥 Nearby Hospitals</Text>
       {hospitals.length === 0 ? (
         <Text style={styles.noData}>No hospitals found nearby.</Text>
@@ -79,6 +92,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f9fafb',
     padding: 20,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0ea5e9',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+    alignSelf: 'flex-start',
+  },
+  backText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  refreshButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: '#fff',
+    padding: 8,
+    borderRadius: 50,
+    elevation: 3,
   },
   header: {
     fontSize: 26,

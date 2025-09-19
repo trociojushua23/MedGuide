@@ -1,12 +1,24 @@
+// File: app/Login.jsx
 import { useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import DisclaimerModal from "../components/DisclaimerModal";
+ // ✅ import modal
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showDisclaimer, setShowDisclaimer] = useState(false); // ✅ toggle modal
+  const [pendingUser, setPendingUser] = useState(null); // hold user data before agree
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -30,20 +42,37 @@ export default function Login() {
         return;
       }
 
-      // ✅ Save session
-      await AsyncStorage.setItem("loggedInUser", user.email);
+      // Store user temporarily until disclaimer is accepted
+      setPendingUser(user);
+      setShowDisclaimer(true);
 
-      Alert.alert("✅ Login Successful", `Welcome back, ${user.name}!`);
-      router.replace("/home");
     } catch (err) {
       console.error("Login error:", err);
       Alert.alert("❌ Error", "Something went wrong while logging in.");
     }
   };
 
+  // ✅ When user agrees on disclaimer
+  const handleAgree = async () => {
+    try {
+      if (pendingUser) {
+        await AsyncStorage.setItem("loggedInUser", JSON.stringify(pendingUser));
+        Alert.alert("✅ Login successful", `Welcome back, ${pendingUser.name}!`);
+      }
+      setShowDisclaimer(false);
+      router.replace("/home"); // redirect to home.jsx
+    } catch (err) {
+      console.error("Session save error:", err);
+      Alert.alert("❌ Error", "Failed to save session.");
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>💊 Welcome Back to MedGuide</Text>
+      <Text style={styles.header}>🏥 MedGuide</Text>
+      <Text style={styles.subtitle}>Caring for your health, anytime</Text>
+
+      <Text style={styles.title}>Welcome Back!</Text>
 
       <TextInput
         placeholder="Email"
@@ -53,7 +82,6 @@ export default function Login() {
         keyboardType="email-address"
         style={styles.input}
       />
-
       <TextInput
         placeholder="Password"
         value={password}
@@ -67,60 +95,38 @@ export default function Login() {
       </Pressable>
 
       <Pressable onPress={() => router.push("/signup")}>
-        <Text style={styles.link}>Don’t have an account? Sign Up</Text>
+        <Text style={styles.link}>Don't have an account? Sign Up</Text>
       </Pressable>
+
+      {/* ✅ Disclaimer Modal */}
+      <DisclaimerModal visible={showDisclaimer} onAgree={handleAgree} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "#f0f8ff", // light medical blue
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 30,
-    textAlign: "center",
-    color: "#2d6a4f", // green health tone
-  },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20, backgroundColor: "#f8f7ff" },
+  header: { fontSize: 28, fontWeight: "bold", marginBottom: 5, color: "#5a48d8" },
+  subtitle: { fontSize: 14, marginBottom: 25, color: "#666" },
+  title: { fontSize: 22, fontWeight: "bold", marginBottom: 25, textAlign: "center" },
   input: {
     width: "90%",
     padding: 14,
     borderWidth: 1,
-    borderColor: "#1d9bf0", // healthcare blue
+    borderColor: "#ccc",
     borderRadius: 10,
     marginBottom: 15,
     backgroundColor: "white",
     fontSize: 16,
-    color: "#333",
   },
   button: {
     width: "90%",
-    backgroundColor: "#1d9bf0", // medical blue
+    backgroundColor: "#5a48d8",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
     marginVertical: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
   },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  link: {
-    color: "#34c759", // green (Apple Health style)
-    marginTop: 15,
-    textDecorationLine: "underline",
-    fontSize: 15,
-  },
+  buttonText: { color: "white", fontWeight: "bold", fontSize: 16 },
+  link: { color: "#5a48d8", marginTop: 15, textDecorationLine: "underline", fontSize: 15 },
 });
