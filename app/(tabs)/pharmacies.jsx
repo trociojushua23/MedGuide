@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, Stack } from "expo-router";
 
 const PharmaciesLocator = () => {
   const [location, setLocation] = useState(null);
@@ -66,6 +66,9 @@ const PharmaciesLocator = () => {
 
   return (
     <View style={styles.container}>
+      {/* ✅ Custom header title (removes (tabs)/pharmacies) */}
+      <Stack.Screen options={{ title: "Nearby Pharmacies" }} />
+
       {/* 🔙 Back to Home Button */}
       <Link href="/home" asChild>
         <TouchableOpacity style={styles.backButton}>
@@ -112,11 +115,7 @@ const PharmaciesLocator = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-    padding: 20,
-  },
+  container: { flex: 1, backgroundColor: "#f8fafc", padding: 20 },
   backButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -165,32 +164,16 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-  },
+  cardHeader: { flexDirection: "row", alignItems: "center", marginBottom: 6 },
   name: {
     fontSize: 18,
     fontWeight: "600",
     color: "#1e293b",
     marginLeft: 6,
   },
-  address: {
-    fontSize: 14,
-    color: "#64748b",
-    lineHeight: 20,
-  },
-  center: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: "#475569",
-  },
+  address: { fontSize: 14, color: "#64748b", lineHeight: 20 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  loadingText: { marginTop: 10, fontSize: 16, color: "#475569" },
 });
 
 export default PharmaciesLocator;

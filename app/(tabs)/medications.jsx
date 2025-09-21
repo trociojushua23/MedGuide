@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router"; // ✅ add this
+import { useRouter, Stack } from "expo-router"; // ✅ add Stack
 
 export default function Medications() {
   const [time, setTime] = useState("");
@@ -52,71 +52,76 @@ export default function Medications() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <Ionicons name="medkit" size={40} color="#2196F3" />
-        <Text style={styles.header}>Medication Reminder</Text>
-        <Text style={styles.subHeader}>💊 Manage your daily pill times</Text>
-      </View>
+    <>
+      {/* ✅ This sets the browser tab + header title */}
+      <Stack.Screen options={{ title: "Medications" }} />
 
-      {/* Input */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter time (e.g. 08:00 AM)"
-          value={time}
-          onChangeText={setTime}
-        />
-        <Pressable style={styles.addButton} onPress={handleSave}>
-          <Text style={styles.addButtonText}>
-            {editingIndex !== null ? "Update" : "Add"}
-          </Text>
-        </Pressable>
-      </View>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Header */}
+        <View style={styles.headerContainer}>
+          <Ionicons name="medkit" size={40} color="#2196F3" />
+          <Text style={styles.header}>Medication Reminder</Text>
+          <Text style={styles.subHeader}>💊 Manage your daily pill times</Text>
+        </View>
 
-      {/* List */}
-      <Text style={styles.sectionTitle}>Today’s Medications</Text>
-      <View style={styles.listContainer}>
-        {medications.length === 0 ? (
-          <Text style={styles.emptyText}>No medications added yet.</Text>
-        ) : (
-          medications.map((med, index) => (
-            <View key={index} style={styles.card}>
-              <View style={styles.cardLeft}>
-                <Ionicons name="pill" size={28} color="#1e90ff" />
-                <View>
-                  <Text style={styles.cardTitle}>Pill #{index + 1}</Text>
-                  <Text style={styles.cardSubtitle}>{med}</Text>
+        {/* Input */}
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter time (e.g. 08:00 AM)"
+            value={time}
+            onChangeText={setTime}
+          />
+          <Pressable style={styles.addButton} onPress={handleSave}>
+            <Text style={styles.addButtonText}>
+              {editingIndex !== null ? "Update" : "Add"}
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* List */}
+        <Text style={styles.sectionTitle}>Today’s Medications</Text>
+        <View style={styles.listContainer}>
+          {medications.length === 0 ? (
+            <Text style={styles.emptyText}>No medications added yet.</Text>
+          ) : (
+            medications.map((med, index) => (
+              <View key={index} style={styles.card}>
+                <View style={styles.cardLeft}>
+                  <Ionicons name="pill" size={28} color="#1e90ff" />
+                  <View>
+                    <Text style={styles.cardTitle}>Pill #{index + 1}</Text>
+                    <Text style={styles.cardSubtitle}>{med}</Text>
+                  </View>
+                </View>
+                <View style={styles.cardActions}>
+                  <Pressable
+                    style={[styles.iconButton, { backgroundColor: "#4CAF50" }]}
+                    onPress={() => handleEdit(index)}
+                  >
+                    <Ionicons name="create" size={18} color="#fff" />
+                  </Pressable>
+                  <Pressable
+                    style={[styles.iconButton, { backgroundColor: "#F44336" }]}
+                    onPress={() => handleDelete(index)}
+                  >
+                    <Ionicons name="trash" size={18} color="#fff" />
+                  </Pressable>
                 </View>
               </View>
-              <View style={styles.cardActions}>
-                <Pressable
-                  style={[styles.iconButton, { backgroundColor: "#4CAF50" }]}
-                  onPress={() => handleEdit(index)}
-                >
-                  <Ionicons name="create" size={18} color="#fff" />
-                </Pressable>
-                <Pressable
-                  style={[styles.iconButton, { backgroundColor: "#F44336" }]}
-                  onPress={() => handleDelete(index)}
-                >
-                  <Ionicons name="trash" size={18} color="#fff" />
-                </Pressable>
-              </View>
-            </View>
-          ))
-        )}
-      </View>
+            ))
+          )}
+        </View>
 
-      {/* ✅ Back to Home Button */}
-      <Pressable
-        style={styles.homeButton}
-        onPress={() => router.push("/home")} // balik sa home.jsx
-      >
-        <Text style={styles.homeButtonText}>⬅️ Back to Home</Text>
-      </Pressable>
-    </ScrollView>
+        {/* ✅ Back to Home Button */}
+        <Pressable
+          style={styles.homeButton}
+          onPress={() => router.push("/home")} // balik sa home.jsx
+        >
+          <Text style={styles.homeButtonText}>⬅️ Back to Home</Text>
+        </Pressable>
+      </ScrollView>
+    </>
   );
 }
 

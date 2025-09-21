@@ -1,16 +1,26 @@
-import { Link } from "expo-router";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Link } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Home = () => {
-  let profileImage;
+  const [photo, setPhoto] = useState(null);
 
-  try {
-    // Try to require the local asset
-    profileImage = require("../assets/user.png");
-  } catch (e) {
-    profileImage = null; // if missing, fallback
-  }
+  useEffect(() => {
+    const loadProfilePhoto = async () => {
+      try {
+        const storedPhoto = await AsyncStorage.getItem("profile_photo");
+        if (storedPhoto) {
+          setPhoto(storedPhoto);
+        }
+      } catch (error) {
+        console.error("Error loading profile photo:", error);
+      }
+    };
+
+    loadProfilePhoto();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -19,11 +29,11 @@ const Home = () => {
         <View style={styles.headerTop}>
           <Ionicons name="medkit" size={40} color="#fff" />
 
-          {/* User Profile Avatar with Fallback */}
+          {/* User Profile Avatar with fallback */}
           <Link href="/profile" asChild>
             <TouchableOpacity style={styles.profileWrapper}>
-              {profileImage ? (
-                <Image source={profileImage} style={styles.profileImage} />
+              {photo ? (
+                <Image source={{ uri: photo }} style={styles.profileImage} />
               ) : (
                 <Ionicons name="person-circle-outline" size={40} color="#fff" />
               )}

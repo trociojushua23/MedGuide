@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView, 
   Platform 
 } from "react-native";
-import { useRouter } from "expo-router";  // 👉 Import router
+import { useRouter, Stack } from "expo-router";  // 👉 Import Stack for title
 
 // 👉 Function to check symptoms
 function getSymptomAdvice(symptom) {
@@ -41,44 +41,47 @@ export default function SymptomChecker() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>🩺 Symptom Checker</Text>
-        <Text style={styles.subtitle}>
-          Enter your symptoms below to get basic health guidance.
-        </Text>
+    <>
+      {/* 👉 This will update the tab title */}
+      <Stack.Screen options={{ title: "Symptom Checker" }} />
 
-        <TextInput
-          placeholder="Type your symptom here..."
-          value={symptom}
-          onChangeText={setSymptom}
-          style={styles.input}
-        />
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.title}>🩺 Symptom Checker</Text>
+          <Text style={styles.subtitle}>
+            Enter your symptoms below to get basic health guidance.
+          </Text>
 
-        <Pressable style={styles.button} onPress={handleCheck}>
-          <Text style={styles.buttonText}>Check Symptoms</Text>
-        </Pressable>
+          <TextInput
+            placeholder="Type your symptom here..."
+            value={symptom}
+            onChangeText={setSymptom}
+            style={styles.input}
+          />
 
-        {result ? (
-          <View style={styles.resultBox}>
-            <Text style={styles.resultText}>{result}</Text>
-          </View>
-        ) : null}
+          <Pressable style={styles.button} onPress={handleCheck}>
+            <Text style={styles.buttonText}>Check Symptoms</Text>
+          </Pressable>
 
-        {/* 👉 Back to Home button */}
-        <Pressable 
-          style={[styles.button, { backgroundColor: "#2d6a4f", marginTop: 20 }]} 
-          // ⚡ Palihug i-adjust depende sa imo file name:
-          onPress={() => router.replace("home")}   // kung index.jsx imong home
-          // onPress={() => router.replace("/home")} // kung Home.jsx imong home
-        >
-          <Text style={styles.buttonText}>⬅️ Back to Home</Text>
-        </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          {result ? (
+            <View style={styles.resultBox}>
+              <Text style={styles.resultText}>{result}</Text>
+            </View>
+          ) : null}
+
+          {/* 👉 Back to Home button */}
+          <Pressable 
+            style={[styles.button, { backgroundColor: "#2d6a4f", marginTop: 20 }]} 
+            onPress={() => router.replace("home")}   // adjust kung asa imo home file
+          >
+            <Text style={styles.buttonText}>⬅️ Back to Home</Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </>
   );
 }
 
