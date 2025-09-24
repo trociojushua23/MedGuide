@@ -1,17 +1,18 @@
+// File: app/(tabs)/symptom-checker.jsx
 import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  Pressable, 
-  StyleSheet, 
-  ScrollView, 
-  KeyboardAvoidingView, 
-  Platform 
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
-import { useRouter, Stack } from "expo-router";  // 👉 Import Stack for title
+import { useRouter, Stack } from "expo-router";
 
-// 👉 Function to check symptoms
+// 👉 Expanded Symptom Advice
 function getSymptomAdvice(symptom) {
   if (!symptom.trim()) {
     return "⚠️ Please enter your symptoms to get advice.";
@@ -25,13 +26,35 @@ function getSymptomAdvice(symptom) {
     return "💆 Headaches can be caused by stress or dehydration. Rest, drink water, and monitor.";
   } else if (s.includes("cough")) {
     return "😷 Persistent cough may indicate flu or respiratory issues. Monitor your temperature.";
+  } else if (s.includes("cold") || s.includes("runny nose")) {
+    return "🤧 Likely a common cold. Rest, fluids, and over-the-counter remedies may help.";
+  } else if (s.includes("sore throat")) {
+    return "🗣️ Sore throat could be due to infection or irritation. Gargle warm salt water and stay hydrated.";
+  } else if (s.includes("stomach pain") || s.includes("abdominal pain")) {
+    return "🤢 Stomach pain can have many causes. Rest, drink fluids, and see a doctor if severe.";
+  } else if (s.includes("diarrhea")) {
+    return "🚰 Stay hydrated. If diarrhea persists more than 2 days or is severe, seek medical care.";
+  } else if (s.includes("vomit") || s.includes("nausea")) {
+    return "🤮 Rest and sip clear fluids. If vomiting is persistent, consult a healthcare provider.";
+  } else if (s.includes("dizzy") || s.includes("dizziness")) {
+    return "😵‍💫 Dizziness may be caused by dehydration, low blood sugar, or other conditions. Sit/lie down and hydrate.";
+  } else if (s.includes("shortness of breath") || s.includes("difficulty breathing")) {
+    return "🚨 Seek medical attention immediately. Breathing issues can be serious.";
+  } else if (s.includes("chest pain")) {
+    return "🚨 Chest pain is a medical emergency. Call emergency services right away.";
+  } else if (s.includes("rash")) {
+    return "🌡️ Skin rashes can be allergies or infections. If spreading or with fever, see a doctor.";
+  } else if (s.includes("fatigue") || s.includes("tired")) {
+    return "😴 Fatigue can result from lack of rest, stress, or illness. Rest and hydrate.";
+  } else if (s.includes("back pain")) {
+    return "🦴 Back pain is often caused by strain. Rest, gentle stretching, and good posture can help.";
   } else {
     return "ℹ️ Symptom not recognized. Please consult a healthcare provider for accurate advice.";
   }
 }
 
 export default function SymptomChecker() {
-  const router = useRouter(); // 👉 initialize router
+  const router = useRouter();
   const [symptom, setSymptom] = useState("");
   const [result, setResult] = useState("");
 
@@ -42,11 +65,10 @@ export default function SymptomChecker() {
 
   return (
     <>
-      {/* 👉 This will update the tab title */}
       <Stack.Screen options={{ title: "Symptom Checker" }} />
 
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView contentContainerStyle={styles.container}>
@@ -72,10 +94,9 @@ export default function SymptomChecker() {
             </View>
           ) : null}
 
-          {/* 👉 Back to Home button */}
-          <Pressable 
-            style={[styles.button, { backgroundColor: "#2d6a4f", marginTop: 20 }]} 
-            onPress={() => router.replace("home")}   // adjust kung asa imo home file
+          <Pressable
+            style={[styles.button, { backgroundColor: "#2d6a4f", marginTop: 20 }]}
+            onPress={() => router.replace("home")}
           >
             <Text style={styles.buttonText}>⬅️ Back to Home</Text>
           </Pressable>

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+// File: app/(tabs)/profile.jsx
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, SafeAreaView } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter, Stack } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 const Profile = () => {
   const [name, setName] = useState("Guest User");
@@ -9,29 +11,52 @@ const Profile = () => {
   const [photo, setPhoto] = useState(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const storedName = await AsyncStorage.getItem("profile_name");
-        const storedEmail = await AsyncStorage.getItem("profile_email");
-        const storedPhoto = await AsyncStorage.getItem("profile_photo");
+  const loadProfile = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem("currentUser");
+      const user = storedUser ? JSON.parse(storedUser) : null;
 
-        if (storedName) setName(storedName);
-        if (storedEmail) setEmail(storedEmail);
-        if (storedPhoto) setPhoto(storedPhoto);
-      } catch (error) {
-        console.error("Error loading profile:", error);
+      if (user) {
+        if (user.name) setName(user.name);
+        if (user.email) setEmail(user.email);
+        if (user.profilePic) setPhoto(user.profilePic);
       }
-    };
+    } catch (error) {
+      console.error("Error loading profile:", error);
+    }
+  };
 
-    loadProfile();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [])
+  );
+
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Yes",
+        onPress: async () => {
+          try {
+            await AsyncStorage.clear();
+            router.replace("/"); 
+          } catch (error) {
+            console.error("Logout error:", error);
+          }
+        },
+      },
+    ]);
+  };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.container}>
+      {/* Custom Header */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Profile</Text>
+        <Text style={styles.headerText}>My Profile</Text>
+        <TouchableOpacity style={styles.logoutIcon} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={26} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       {/* Profile Photo */}
@@ -76,75 +101,72 @@ const Profile = () => {
         <Text style={styles.menuText}>❓ Help & Support</Text>
       </TouchableOpacity>
 
-      {/* Back to Home */}
       <TouchableOpacity
         style={styles.menuItem}
         onPress={() => router.push("/home")}
       >
         <Text style={styles.menuText}>🏠 Back to Home</Text>
       </TouchableOpacity>
-
-      {/* Logout */}
-      <TouchableOpacity style={styles.logoutBtn}>
-        <Text style={styles.logoutText}>🚪 Logout</Text>
-      </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
-};
-
-// para dili na mugawas ang "(tabs)/profile" sa ibabaw
-Profile.options = {
-  headerShown: false,
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9fafe", alignItems: "center" },
+
   header: {
     width: "100%",
-    padding: 20,
+    paddingVertical: 35, // ⬅️ more downward padding
     backgroundColor: "#0ea5e9",
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   headerText: {
     color: "#fff",
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
     textAlign: "center",
+    flex: 1,
   },
+  logoutIcon: {
+    position: "absolute",
+    right: 20,
+    alignSelf: "center" // ⬅️ aligns better vertically
+  },
+
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginVertical: 20,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    marginTop: 25,
+    marginBottom: 15,
     borderWidth: 3,
     borderColor: "#0ea5e9",
-    alignItems: "center",
-    justifyContent: "center",
   },
-  placeholder: {
-    backgroundColor: "#eee",
-  },
+  placeholder: { backgroundColor: "#eee", justifyContent: "center", alignItems: "center" },
+
   name: { fontSize: 22, fontWeight: "700", color: "#222" },
   email: { fontSize: 16, color: "#555", marginBottom: 30 },
+
   menuItem: {
     width: "90%",
     backgroundColor: "#fff",
     padding: 15,
-    marginVertical: 5,
-    borderRadius: 10,
+    marginVertical: 6,
+    borderRadius: 12,
     elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
   menuText: { fontSize: 16, color: "#2e2c2cff" },
-  logoutBtn: {
-    marginTop: 30,
-    width: "90%",
-    backgroundColor: "red",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  logoutText: { color: "#fff", fontSize: 16, fontWeight: "600" },
 });
 
 export default Profile;

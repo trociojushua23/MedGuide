@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "my-goals",
+    "name": "MedGuide",
     "slug": "my-goals",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/medical-book.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/iconic.png",
         "backgroundColor": "#ffffff"
       }
     },

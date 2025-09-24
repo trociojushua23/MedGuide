@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,119 +9,155 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, Stack } from "expo-router"; // ✅ add Stack
+import { useRouter } from "expo-router";
+import { db } from "../../firebaseConfig"; // ✅ make sure firebaseConfig.js is set up
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 
 export default function Medications() {
   const [time, setTime] = useState("");
   const [medications, setMedications] = useState([]);
-  const [editingIndex, setEditingIndex] = useState(null);
-  const router = useRouter(); // ✅ initialize router
+  const [editingId, setEditingId] = useState(null);
+  const router = useRouter();
+
+  const medsCollection = collection(db, "medications"); // ✅ Firestore collection
+
+  // Load medications from Firestore on mount
+  useEffect(() => {
+    const fetchMeds = async () => {
+      try {
+        const snapshot = await getDocs(medsCollection);
+        const medsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setMedications(medsData);
+      } catch (error) {
+        console.error("Error fetching medications:", error);
+      }
+    };
+    fetchMeds();
+  }, []);
 
   // Add or update medication time
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!time.trim()) {
       Alert.alert("⚠️ Input Required", "Please enter a time (e.g. 08:00 AM).");
       return;
     }
 
-    if (editingIndex !== null) {
-      const updated = [...medications];
-      updated[editingIndex] = time;
-      setMedications(updated);
-      setEditingIndex(null);
-      Alert.alert("✅ Updated", "Medication time updated successfully.");
-    } else {
-      setMedications([...medications, time]);
-      Alert.alert("✅ Added", "Medication time added successfully.");
+    try {
+      if (editingId) {
+        // ✅ Update Firestore
+        const docRef = doc(db, "medications", editingId);
+        await updateDoc(docRef, { time });
+        setMedications((prev) =>
+          prev.map((med) => (med.id === editingId ? { ...med, time } : med))
+        );
+        setEditingId(null);
+        Alert.alert("✅ Updated", "Medication time updated successfully.");
+      } else {
+        // ✅ Add new to Firestore
+        const docRef = await addDoc(medsCollection, { time });
+        setMedications([...medications, { id: docRef.id, time }]);
+        Alert.alert("✅ Added", "Medication time added successfully.");
+      }
+      setTime("");
+    } catch (error) {
+      console.error("Error saving medication:", error);
     }
-
-    setTime("");
   };
 
   // Edit existing time
-  const handleEdit = (index) => {
-    setTime(medications[index]);
-    setEditingIndex(index);
+  const handleEdit = (id, currentTime) => {
+    setTime(currentTime);
+    setEditingId(id);
   };
 
   // Delete time
-  const handleDelete = (index) => {
-    const updated = medications.filter((_, i) => i !== index);
-    setMedications(updated);
-    Alert.alert("🗑️ Deleted", "Medication time removed.");
+  const handleDelete = async (id) => {
+    try {
+      const docRef = doc(db, "medications", id);
+      await deleteDoc(docRef);
+      setMedications((prev) => prev.filter((med) => med.id !== id));
+      Alert.alert("🗑️ Deleted", "Medication time removed.");
+    } catch (error) {
+      console.error("Error deleting medication:", error);
+    }
   };
 
   return (
-    <>
-      {/* ✅ This sets the browser tab + header title */}
-      <Stack.Screen options={{ title: "Medications" }} />
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Header */}
+      <View style={styles.headerContainer}>
+        <Ionicons name="medkit" size={40} color="#2196F3" />
+        <Text style={styles.header}>Medication Reminder</Text>
+        <Text style={styles.subHeader}>💊 Manage your daily pill times</Text>
+      </View>
 
-      <ScrollView contentContainerStyle={styles.container}>
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <Ionicons name="medkit" size={40} color="#2196F3" />
-          <Text style={styles.header}>Medication Reminder</Text>
-          <Text style={styles.subHeader}>💊 Manage your daily pill times</Text>
-        </View>
+      {/* Input */}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter time (e.g. 08:00 AM)"
+          value={time}
+          onChangeText={setTime}
+        />
+        <Pressable style={styles.addButton} onPress={handleSave}>
+          <Text style={styles.addButtonText}>
+            {editingId ? "Update" : "Add"}
+          </Text>
+        </Pressable>
+      </View>
 
-        {/* Input */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter time (e.g. 08:00 AM)"
-            value={time}
-            onChangeText={setTime}
-          />
-          <Pressable style={styles.addButton} onPress={handleSave}>
-            <Text style={styles.addButtonText}>
-              {editingIndex !== null ? "Update" : "Add"}
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* List */}
-        <Text style={styles.sectionTitle}>Today’s Medications</Text>
-        <View style={styles.listContainer}>
-          {medications.length === 0 ? (
-            <Text style={styles.emptyText}>No medications added yet.</Text>
-          ) : (
-            medications.map((med, index) => (
-              <View key={index} style={styles.card}>
-                <View style={styles.cardLeft}>
-                  <Ionicons name="pill" size={28} color="#1e90ff" />
-                  <View>
-                    <Text style={styles.cardTitle}>Pill #{index + 1}</Text>
-                    <Text style={styles.cardSubtitle}>{med}</Text>
-                  </View>
-                </View>
-                <View style={styles.cardActions}>
-                  <Pressable
-                    style={[styles.iconButton, { backgroundColor: "#4CAF50" }]}
-                    onPress={() => handleEdit(index)}
-                  >
-                    <Ionicons name="create" size={18} color="#fff" />
-                  </Pressable>
-                  <Pressable
-                    style={[styles.iconButton, { backgroundColor: "#F44336" }]}
-                    onPress={() => handleDelete(index)}
-                  >
-                    <Ionicons name="trash" size={18} color="#fff" />
-                  </Pressable>
+      {/* List */}
+      <Text style={styles.sectionTitle}>Today’s Medications</Text>
+      <View style={styles.listContainer}>
+        {medications.length === 0 ? (
+          <Text style={styles.emptyText}>No medications added yet.</Text>
+        ) : (
+          medications.map((med, index) => (
+            <View key={med.id} style={styles.card}>
+              <View style={styles.cardLeft}>
+                <Ionicons name="pill" size={28} color="#1e90ff" />
+                <View>
+                  <Text style={styles.cardTitle}>Pill #{index + 1}</Text>
+                  <Text style={styles.cardSubtitle}>{med.time}</Text>
                 </View>
               </View>
-            ))
-          )}
-        </View>
+              <View style={styles.cardActions}>
+                <Pressable
+                  style={[styles.iconButton, { backgroundColor: "#4CAF50" }]}
+                  onPress={() => handleEdit(med.id, med.time)}
+                >
+                  <Ionicons name="create" size={18} color="#fff" />
+                </Pressable>
+                <Pressable
+                  style={[styles.iconButton, { backgroundColor: "#F44336" }]}
+                  onPress={() => handleDelete(med.id)}
+                >
+                  <Ionicons name="trash" size={18} color="#fff" />
+                </Pressable>
+              </View>
+            </View>
+          ))
+        )}
+      </View>
 
-        {/* ✅ Back to Home Button */}
-        <Pressable
-          style={styles.homeButton}
-          onPress={() => router.push("/home")} // balik sa home.jsx
-        >
-          <Text style={styles.homeButtonText}>⬅️ Back to Home</Text>
-        </Pressable>
-      </ScrollView>
-    </>
+      {/* Back to Home Button */}
+      <Pressable
+        style={styles.homeButton}
+        onPress={() => router.push("/home")}
+      >
+        <Text style={styles.homeButtonText}>⬅️ Back to Home</Text>
+      </Pressable>
+    </ScrollView>
   );
 }
 

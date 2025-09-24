@@ -1,131 +1,81 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  SafeAreaView,
-  CheckBox, // gamit native CheckBox
-} from "react-native";
+// File: components/DisclaimerModal.jsx
+import React from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 
-const DisclaimerModal = ({ visible, onAgree }) => {
-  const [isChecked, setIsChecked] = useState(false);
-
+export default function DisclaimerModal({ onAccept, onDecline }) {
   return (
-    <Modal visible={visible} animationType="fade" transparent>
-      <View style={styles.overlay}>
-        <SafeAreaView style={styles.modalBox}>
-          <Text style={styles.title}>Please Read Carefully & Agree</Text>
+    <View style={styles.overlay}>
+      <View style={styles.modal}>
+        <Text style={styles.title}>Disclaimer</Text>
+        <Text style={styles.text}>
+          MedGuide provides general health information only. This app does not
+          replace professional medical advice, diagnosis, or treatment. Always
+          seek a doctor’s advice for serious concerns.
+        </Text>
 
-          <Text style={styles.bullet}>
-            • This generated analysis is for educational purposes only and may
-            contain inaccuracies.
-          </Text>
-          <Text style={styles.bullet}>
-            • Results depend on the document provided and are not a substitute
-            for professional advice.
-          </Text>
-          <Text style={styles.bullet}>
-            • For your peace of mind and well-being, consult a doctor before
-            making health decisions.
-          </Text>
+        <View style={styles.buttons}>
+          <Pressable style={[styles.button, styles.agree]} onPress={onAccept}>
+            <Text style={styles.buttonText}>Agree & Continue</Text>
+          </Pressable>
 
-          <Text style={styles.subtitle}>Privacy & Data Protection:</Text>
-          <Text style={styles.desc}>
-            By using our service, you agree to our privacy policy, compliant with
-            global data protection laws, including DPDP, CCPA, GDPR, PIPEDA,
-            APPI, and PDPA.
-          </Text>
-
-          {/* Checkbox */}
-          <View style={styles.checkboxContainer}>
-            <CheckBox
-              value={isChecked}
-              onValueChange={setIsChecked}
-              tintColors={{ true: "#2563eb", false: "#999" }}
-            />
-            <Text style={styles.checkboxLabel}>
-              I have read and agree to the terms above.
-            </Text>
-          </View>
-
-          {/* Agree button */}
-          <TouchableOpacity
-            style={[
-              styles.agreeButton,
-              { backgroundColor: isChecked ? "#2563eb" : "#ccc" },
-            ]}
-            onPress={onAgree}
-            disabled={!isChecked}
-          >
-            <Text style={styles.agreeText}>Agree & Continue</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
+          <Pressable style={[styles.button, styles.cancel]} onPress={onDecline}>
+            <Text style={styles.buttonText}>Cancel</Text>
+          </Pressable>
+        </View>
       </View>
-    </Modal>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.6)",
     padding: 20,
   },
-  modalBox: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 20,
+  modal: {
     width: "100%",
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    alignItems: "center",
   },
   title: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 14,
-    textAlign: "center",
-    color: "#111",
-  },
-  bullet: {
-    fontSize: 14,
-    color: "#333",
-    marginBottom: 8,
-  },
-  subtitle: {
-    marginTop: 10,
-    fontWeight: "600",
-    fontSize: 15,
-    color: "#111",
-  },
-  desc: {
-    fontSize: 13,
-    color: "#444",
-    marginTop: 4,
-    marginBottom: 18,
-  },
-  checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    fontSize: 22,
+    fontWeight: "bold",
     marginBottom: 15,
+    color: "#5a48d8",
+    textAlign: "center",
   },
-  checkboxLabel: {
-    fontSize: 13,
-    color: "#333",
-    marginLeft: 8,
-    flexShrink: 1,
-  },
-  agreeButton: {
-    padding: 14,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  agreeText: {
-    color: "#fff",
-    fontWeight: "600",
+  text: {
     fontSize: 15,
+    color: "#333",
+    marginBottom: 25,
+    textAlign: "center",
+  },
+  buttons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
+  agree: {
+    backgroundColor: "#5a48d8",
+  },
+  cancel: {
+    backgroundColor: "#ccc",
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
-
-export default DisclaimerModal;

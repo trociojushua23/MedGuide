@@ -1,26 +1,33 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useCallback } from "react";
 
 const Home = () => {
   const [photo, setPhoto] = useState(null);
 
-  useEffect(() => {
-    const loadProfilePhoto = async () => {
-      try {
-        const storedPhoto = await AsyncStorage.getItem("profile_photo");
-        if (storedPhoto) {
-          setPhoto(storedPhoto);
-        }
-      } catch (error) {
-        console.error("Error loading profile photo:", error);
+  // Load profile photo whenever home is focused
+  const loadProfilePhoto = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem("currentUser");
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      if (user?.profilePic) {
+        setPhoto(user.profilePic);
+      } else {
+        setPhoto(null);
       }
-    };
+    } catch (error) {
+      console.error("Error loading profile photo:", error);
+    }
+  };
 
-    loadProfilePhoto();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadProfilePhoto();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -72,10 +79,7 @@ const NavCard = ({ href, label, icon }) => (
 );
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafe",
-  },
+  container: { flex: 1, backgroundColor: "#f9fafe" },
   headerWrapper: {
     backgroundColor: "#0ea5e9",
     paddingVertical: 50,
@@ -101,11 +105,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  profileImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
+  profileImage: { width: "100%", height: "100%", resizeMode: "cover" },
   header: {
     fontSize: 30,
     fontWeight: "800",
@@ -113,21 +113,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: "center",
   },
-  subtitle: {
-    fontSize: 15,
-    color: "#e0f2fe",
-    marginTop: 4,
-    textAlign: "center",
-  },
-  cardContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 50,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
+  subtitle: { fontSize: 15, color: "#e0f2fe", marginTop: 4, textAlign: "center" },
+  cardContainer: { paddingHorizontal: 20, paddingBottom: 50 },
+  grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
   card: {
     backgroundColor: "#fff",
     width: "47%",

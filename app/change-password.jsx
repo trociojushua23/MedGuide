@@ -9,12 +9,13 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { db } from "../firebaseConfig";
+import { doc, updateDoc } from "firebase/firestore";
 
 export default function ChangePassword() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const router = useRouter();
 
   const handleChangePassword = async () => {
@@ -29,22 +30,35 @@ export default function ChangePassword() {
     }
 
     try {
-      const storedPassword = await AsyncStorage.getItem("user_password");
+      const storedUser = await AsyncStorage.getItem("currentUser");
+      if (!storedUser) {
+        Alert.alert("Error", "No user found.");
+        return;
+      }
 
-      if (storedPassword !== oldPassword) {
+      const parsedUser = JSON.parse(storedUser);
+
+      if (parsedUser.password !== oldPassword) {
         Alert.alert("Error", "Old password is incorrect.");
         return;
       }
 
-      await AsyncStorage.setItem("user_password", newPassword);
+      if (!parsedUser.id) {
+        console.error("⚠️ No ID found in currentUser:", parsedUser);
+        Alert.alert("Error", "User ID missing. Please re-login.");
+        return;
+      }
+
+      // ✅ Update Firestore
+      const userRef = doc(db, "users", parsedUser.id);
+      await updateDoc(userRef, { password: newPassword });
+
+      // ✅ Update local storage
+      const updatedUser = { ...parsedUser, password: newPassword };
+      await AsyncStorage.setItem("currentUser", JSON.stringify(updatedUser));
 
       Alert.alert("Success", "Password changed successfully!", [
-        {
-          text: "OK",
-          onPress: () => {
-            router.back(); // balik sa previous page (Profile.jsx)
-          },
-        },
+        { text: "OK", onPress: () => router.back() },
       ]);
 
       setOldPassword("");
@@ -52,6 +66,7 @@ export default function ChangePassword() {
       setConfirmPassword("");
     } catch (error) {
       console.error("Error changing password:", error);
+      Alert.alert("Error", "Failed to update password");
     }
   };
 
@@ -91,37 +106,9 @@ export default function ChangePassword() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-    backgroundColor: "#f9fafe",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#0ea5e9",
-  },
-  input: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 15,
-    fontSize: 16,
-  },
-  saveBtn: {
-    backgroundColor: "#0ea5e9",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  saveText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  container: { flex: 1, justifyContent: "center", padding: 20, backgroundColor: "#f9fafe" },
+  title: { fontSize: 22, fontWeight: "700", marginBottom: 20, textAlign: "center", color: "#0ea5e9" },
+  input: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#ddd", borderRadius: 10, padding: 12, marginBottom: 15, fontSize: 16 },
+  saveBtn: { backgroundColor: "#0ea5e9", padding: 15, borderRadius: 10, alignItems: "center" },
+  saveText: { color: "#fff", fontSize: 16, fontWeight: "600" },
 });

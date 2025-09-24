@@ -44,15 +44,35 @@ const PharmaciesLocator = () => {
   const fetchPharmacies = async (lat, lon) => {
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=pharmacy&limit=10&lat=${lat}&lon=${lon}`
+        `https://overpass-api.de/api/interpreter?data=[out:json];node(around:3000,${lat},${lon})["amenity"="pharmacy"];out;`
       );
       const data = await response.json();
-      setPharmacies(data);
+
+      const withDistance = data.elements.map((item) => ({
+        ...item,
+        distance: getDistance(lat, lon, item.lat, item.lon),
+      }));
+
+      withDistance.sort((a, b) => a.distance - b.distance);
+      setPharmacies(withDistance);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching pharmacies:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
   };
 
   if (loading) {
@@ -66,27 +86,28 @@ const PharmaciesLocator = () => {
 
   return (
     <View style={styles.container}>
-      {/* ✅ Custom header title (removes (tabs)/pharmacies) */}
       <Stack.Screen options={{ title: "Nearby Pharmacies" }} />
 
-      {/* 🔙 Back to Home Button */}
-      <Link href="/home" asChild>
-        <TouchableOpacity style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color="#fff" />
-          <Text style={styles.backText}>Back to Home</Text>
-        </TouchableOpacity>
-      </Link>
+      {/* Top row with Back + Reload */}
+      <View style={styles.topRow}>
+        <Link href="/home" asChild>
+          <TouchableOpacity style={styles.backButton}>
+            <Ionicons name="arrow-back" size={22} color="#fff" />
+            <Text style={styles.backText}>Back to Home</Text>
+          </TouchableOpacity>
+        </Link>
 
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <Ionicons name="medkit" size={26} color="#0ea5e9" />
-        <Text style={styles.header}>Nearby Pharmacies</Text>
         <Pressable onPress={getLocationAndFetch} style={styles.refreshBtn}>
           <Ionicons name="refresh" size={20} color="#fff" />
         </Pressable>
       </View>
 
-      {/* Results */}
+      {/* Title below buttons */}
+      <View style={styles.headerContainer}>
+        <Ionicons name="medkit" size={26} color="#0ea5e9" />
+        <Text style={styles.header}>Nearby Pharmacies</Text>
+      </View>
+
       {pharmacies.length === 0 ? (
         <View style={styles.center}>
           <Ionicons name="sad-outline" size={40} color="#64748b" />
@@ -95,17 +116,19 @@ const PharmaciesLocator = () => {
       ) : (
         <FlatList
           data={pharmacies}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ paddingBottom: 20 }}
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.cardHeader}>
                 <Ionicons name="medkit-outline" size={22} color="#0ea5e9" />
                 <Text style={styles.name}>
-                  {item.display_name.split(",")[0]}
+                  {item.tags?.name || "Unnamed Pharmacy"}
                 </Text>
               </View>
-              <Text style={styles.address}>{item.display_name}</Text>
+              <Text style={styles.address}>
+                {item.distance.toFixed(2)} km away
+              </Text>
             </View>
           )}
         />
@@ -116,14 +139,22 @@ const PharmaciesLocator = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f8fafc", padding: 20 },
+
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+    marginTop: 40, // ⬅️ pushes buttons downward
+  },
+
   backButton: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#0ea5e9",
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     borderRadius: 10,
-    marginBottom: 15,
-    alignSelf: "flex-start",
   },
   backText: {
     color: "#fff",
@@ -131,10 +162,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 6,
   },
+
+  refreshBtn: {
+    backgroundColor: "#0ea5e9",
+    padding: 10,
+    borderRadius: 10,
+  },
+
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 15,
+    marginTop: 10, // ⬅️ adds spacing below the buttons
   },
   header: {
     fontSize: 22,
@@ -143,11 +182,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     flex: 1,
   },
-  refreshBtn: {
-    backgroundColor: "#0ea5e9",
-    padding: 8,
-    borderRadius: 10,
-  },
+
   noData: {
     textAlign: "center",
     marginTop: 10,
@@ -172,6 +207,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   address: { fontSize: 14, color: "#64748b", lineHeight: 20 },
+
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   loadingText: { marginTop: 10, fontSize: 16, color: "#475569" },
 });
